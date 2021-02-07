@@ -1,11 +1,18 @@
 <template>
-  <p>SuperMall</p>
+  <div id="app">
+    <router-view></router-view>
+    <MainTabBar />
+  </div>
 </template>
 
 <script>
+import MainTabBar from "components/content/mainTabBar/MainTabBar";
+
 export default {
   name: "App",
-  components: {},
+  components: {
+    MainTabBar
+  }
 };
 </script>
 
