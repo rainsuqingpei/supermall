@@ -3,15 +3,20 @@
     <NavBar class="home-nav">
       <div slot="center">购物街</div>
     </NavBar>
-    <HomeSwiper :banners="banners"></HomeSwiper>
-    <HomeRecommendView :recommend="recommend"></HomeRecommendView>
-    <HomeFeatureView />
-    <TabControl
-      class="tab-control"
-      :titles="['流行', '新款', '精选']"
-      @tabClick="tabClick"
-    ></TabControl>
-    <GoodsList :goods="showGoodsType"></GoodsList>
+    <div>
+      <Scroll class="content" ref="scroll" :probeType="3" :pullUpLoad="true" @contentOffset="contentOffset">
+        <HomeSwiper :banners="banners"></HomeSwiper>
+        <HomeRecommendView :recommend="recommend"></HomeRecommendView>
+        <HomeFeatureView />
+        <TabControl
+          class="tab-control"
+          :titles="['流行', '新款', '精选']"
+          @tabClick="tabClick"
+        ></TabControl>
+        <GoodsList :goods="showGoodsType"></GoodsList>
+      </Scroll>
+    </div>
+    <BackTop @click.native="backTopClick" v-show="isBackTopShow"></BackTop>
   </div>
 </template>
 
@@ -22,6 +27,8 @@ import HomeRecommendView from "./childComps/HomeRecommendView";
 import HomeFeatureView from "./childComps/HomeFeatureView";
 import TabControl from "components/content/tabControl/TabControl";
 import GoodsList from "components/content/goods/GoodsList";
+import Scroll from "components/content/scroll/Scroll";
+import BackTop from "components/content/backtop/BackTop";
 
 import { getHomeMultidata, getHomeGoods } from "network/home";
 
@@ -34,6 +41,8 @@ export default {
     HomeFeatureView,
     TabControl,
     GoodsList,
+    Scroll,
+    BackTop
   },
   data() {
     return {
@@ -45,6 +54,7 @@ export default {
         sell: { page: 0, list: [] },
       },
       currentType: "pop",
+      isBackTopShow: false
     };
   },
   created() {
@@ -82,6 +92,13 @@ export default {
       // this.$refs.tabControl1.currentIndex = index;
       // this.$refs.tabControl2.currentIndex = index;
     },
+    contentOffset(position) {
+      this.isBackTopShow = -position.y > 200;
+      // this.isTabFixed = -position.y > this.tabOffsetTop;
+    },
+    backTopClick(){
+      this.$refs.scroll.scrollTo(0,0,500)
+    }
   },
   computed: {
     showGoodsType() {
@@ -93,8 +110,11 @@ export default {
 
 <style lang="scss" scoped>
 #home {
-  margin-bottom: 49px;
   position: relative;
+  top: 0;
+  left: 0;
+  height: calc(100vh - 49px);
+  overflow: hidden;
   .home-nav {
     position: fixed;
     top: 0;
@@ -102,6 +122,9 @@ export default {
     z-index: 999;
     background-color: var(--color-tint);
     color: #fff;
+  }
+  .content {
+    height: calc(100vh - 49px);
   }
 }
 </style>
