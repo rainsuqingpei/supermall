@@ -4,7 +4,13 @@
       <div slot="center">购物街</div>
     </NavBar>
     <div>
-      <Scroll class="content" ref="scroll" :probeType="3" :pullUpLoad="true" @contentOffset="contentOffset">
+      <Scroll
+        class="content"
+        ref="scroll"
+        :probeType="3"
+        :pullUpLoad="true"
+        @contentOffset="contentOffset"
+        @pullingUp="loadMore">
         <HomeSwiper :banners="banners"></HomeSwiper>
         <HomeRecommendView :recommend="recommend"></HomeRecommendView>
         <HomeFeatureView />
@@ -30,6 +36,7 @@ import GoodsList from "components/content/goods/GoodsList";
 import Scroll from "components/content/scroll/Scroll";
 import BackTop from "components/content/backtop/BackTop";
 
+import { debouce } from "@/common/utils";
 import { getHomeMultidata, getHomeGoods } from "network/home";
 
 export default {
@@ -63,6 +70,12 @@ export default {
     this.getHomeGoods("new");
     this.getHomeGoods("sell");
   },
+  mounted() {
+    let refresh = debouce(this.$refs.scroll.refresh, 150);
+    this.$bus.$on("itemImageLoad", () => {
+      refresh()
+    });
+  },
   methods: {
     getHomeMultidata() {
       getHomeMultidata().then((res) => {
@@ -75,6 +88,8 @@ export default {
       getHomeGoods(type, page).then((res) => {
         this.goods[type].list.push(...res.data.list);
         this.goods[type].page += 1;
+        //上拉加载更多,需要关闭当前的滚动状态
+        this.$refs.scroll.finishPullUp();
       });
     },
     tabClick(index) {
@@ -95,6 +110,10 @@ export default {
     contentOffset(position) {
       this.isBackTopShow = -position.y > 200;
       // this.isTabFixed = -position.y > this.tabOffsetTop;
+    },
+    loadMore() {
+      console.log("load More")
+      this.getHomeGoods(this.currentType);
     },
     backTopClick(){
       this.$refs.scroll.scrollTo(0,0,500)
