@@ -3,6 +3,13 @@
     <NavBar class="home-nav">
       <div slot="center">购物街</div>
     </NavBar>
+    <TabControl
+      v-show="isTabFixed"
+      class="tab-control1"
+      :titles="['流行', '新款', '精选']"
+      @tabClick="tabClick"
+      ref="tabControl1"
+    ></TabControl>
     <div>
       <Scroll
         class="content"
@@ -11,13 +18,14 @@
         :pullUpLoad="true"
         @contentOffset="contentOffset"
         @pullingUp="loadMore">
-        <HomeSwiper :banners="banners"></HomeSwiper>
+        <HomeSwiper :banners="banners" @swiperItemLoadImg="swiperItemLoadImg"></HomeSwiper>
         <HomeRecommendView :recommend="recommend"></HomeRecommendView>
         <HomeFeatureView />
         <TabControl
-          class="tab-control"
+          class="tab-control2"
           :titles="['流行', '新款', '精选']"
           @tabClick="tabClick"
+          ref="tabControl2"
         ></TabControl>
         <GoodsList :goods="showGoodsType"></GoodsList>
       </Scroll>
@@ -61,7 +69,10 @@ export default {
         sell: { page: 0, list: [] },
       },
       currentType: "pop",
-      isBackTopShow: false
+      tabOffsetTop: 0,
+      isTabFixed: false,
+      isBackTopShow: false,
+      saveY: 0
     };
   },
   created() {
@@ -70,7 +81,16 @@ export default {
     this.getHomeGoods("new");
     this.getHomeGoods("sell");
   },
+  activated() {
+    this.$refs.scroll.scrollTo(0, this.saveY, 0);
+    this.$refs.scroll.refresh();
+  },
+  deactivated() {
+    this.saveY = this.$refs.scroll.getContentY();
+    // this.$bus.$off("itemImgLoad", this.itemImgListener);
+  },
   mounted() {
+    // 图片加载完成的事件监听
     let refresh = debouce(this.$refs.scroll.refresh, 150);
     this.$bus.$on("itemImageLoad", () => {
       refresh()
@@ -104,16 +124,22 @@ export default {
           this.currentType = "sell";
           break;
       }
-      // this.$refs.tabControl1.currentIndex = index;
-      // this.$refs.tabControl2.currentIndex = index;
+      // 使得虚假与真实的两个tabControl的currentIndex保持一致
+      this.$refs.tabControl1.currentIndex = index;
+      this.$refs.tabControl2.currentIndex = index;
+      // 点击切换tabControl后 会自动滚动到展示第一个物品的位置
+      this.$refs.scroll.scrollTo(0, -(this.tabOffsetTop - 40), 0);
     },
     contentOffset(position) {
-      this.isBackTopShow = -position.y > 200;
-      // this.isTabFixed = -position.y > this.tabOffsetTop;
+      this.isBackTopShow = -position.y > 800;
+      this.isTabFixed = -position.y > this.tabOffsetTop;
     },
     loadMore() {
-      console.log("load More")
       this.getHomeGoods(this.currentType);
+    },
+    swiperItemLoadImg() {
+      // 获取tab control的距离顶部位置
+      this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop;
     },
     backTopClick(){
       this.$refs.scroll.scrollTo(0,0,500)
@@ -144,6 +170,13 @@ export default {
   }
   .content {
     height: calc(100vh - 49px);
+  }
+  .tab-control1 {
+    position: relative;
+    top: 44px;
+    left: 0;
+    z-index: 999;
+    background-color: #fff;
   }
 }
 </style>
