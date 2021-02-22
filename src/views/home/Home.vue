@@ -42,10 +42,10 @@ import HomeFeatureView from "./childComps/HomeFeatureView";
 import TabControl from "components/content/tabControl/TabControl";
 import GoodsList from "components/content/goods/GoodsList";
 import Scroll from "components/content/scroll/Scroll";
-import BackTop from "components/content/backtop/BackTop";
 
-import { debouce } from "@/common/utils";
 import { getHomeMultidata, getHomeGoods } from "network/home";
+import { debouce } from "@/common/utils";
+import { itemListernerMixin, backTopMixin } from "@/common/mixin";
 
 export default {
   name: "Home",
@@ -57,8 +57,8 @@ export default {
     TabControl,
     GoodsList,
     Scroll,
-    BackTop
   },
+  mixins: [itemListernerMixin, backTopMixin],
   data() {
     return {
       banners: [],
@@ -71,7 +71,6 @@ export default {
       currentType: "pop",
       tabOffsetTop: 0,
       isTabFixed: false,
-      isBackTopShow: false,
       saveY: 0
     };
   },
@@ -87,14 +86,11 @@ export default {
   },
   deactivated() {
     this.saveY = this.$refs.scroll.getContentY();
-    // this.$bus.$off("itemImgLoad", this.itemImgListener);
+    // 离开时会取消监听图片是否加载，避免该组件其他地方使用时候，影响了Home组件
+    this.$bus.$off("itemImgLoad", this.itemImgListener);
   },
   mounted() {
-    // 图片加载完成的事件监听
-    let refresh = debouce(this.$refs.scroll.refresh, 150);
-    this.$bus.$on("itemImageLoad", () => {
-      refresh()
-    });
+    // 图片加载完成的事件监听,添加事件总线给this.$bus.$on("itemImageLoad"---！ 不过已经定义好在mixin中
   },
   methods: {
     getHomeMultidata() {
@@ -132,7 +128,7 @@ export default {
     },
     contentOffset(position) {
       this.isBackTopShow = -position.y > 800;
-      this.isTabFixed = -position.y > this.tabOffsetTop;
+      this.isTabFixed = -position.y > this.tabOffsetTop - 44;
     },
     loadMore() {
       this.getHomeGoods(this.currentType);
@@ -141,9 +137,6 @@ export default {
       // 获取tab control的距离顶部位置
       this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop;
     },
-    backTopClick(){
-      this.$refs.scroll.scrollTo(0,0,500)
-    }
   },
   computed: {
     showGoodsType() {
@@ -172,7 +165,8 @@ export default {
     height: calc(100vh - 49px);
   }
   .tab-control1 {
-    position: relative;
+    position: fixed;
+    width: 100%;
     top: 44px;
     left: 0;
     z-index: 999;
