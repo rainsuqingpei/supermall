@@ -142,7 +142,7 @@ export default {
       this.detailOffsetTop.push(this.$refs.recommends.$el.offsetTop);
       // push进一个很大的数字，代表页面总长度
       this.detailOffsetTop.push(99999);
-      console.log(this.detailOffsetTop);
+      // console.log(this.detailOffsetTop);
     },
     contentOffset(position) {
       this.isBackTopShow = -position.y > 800;
@@ -176,7 +176,7 @@ export default {
       // 也可以类同mapGetters mapActions  来映射store.actions中的方法到methods中
       // 则下面可以写成    this.addCart(shop).then( res=> { console.log(res) } )
       this.$store.dispatch("addCart", shop).then(res =>{
-        console.log(res)
+        // console.log(res)
         this.$toast.shows(res);
       })
     }
