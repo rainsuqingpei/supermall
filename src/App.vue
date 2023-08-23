@@ -11,6 +11,7 @@
 import MainTabBar from "components/content/mainTabBar/MainTabBar";
 
 // aaa
+// bbb
 export default {
   name: "App",
   components: {
