@@ -12,6 +12,7 @@ import MainTabBar from "components/content/mainTabBar/MainTabBar";
 
 // aaa
 // bbb
+// test ccc
 export default {
   name: "App",
   components: {
